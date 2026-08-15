@@ -31,3 +31,9 @@ def get_talhao_centroid(talhao_row):
     latitude = centroid.y
     longitude = centroid.x
     return (latitude, longitude)
+
+def get_talhao_geometry_web_mercator(talhao_row):
+    geometry_series = gpd.GeoSeries([talhao_row.geometry], crs="EPSG:4326")
+    geometry_web_mercator = geometry_series.to_crs("EPSG:3857")
+
+    return geometry_web_mercator.iloc[0]
