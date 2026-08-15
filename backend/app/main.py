@@ -1,12 +1,15 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import logging
+logging.basicConfig(level=logging.INFO, force=True)
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.services import geo_service
 
 from app.api import cars
-
-logging.basicConfig(level=logging.INFO, force=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
