@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+from datetime import date, timedelta
 
 CLIMATE_API_URL="https://archive-api.open-meteo.com/v1/archive"
 
@@ -24,3 +25,28 @@ def aggregate_monthly(daily_data: dict):
 
     monthly_avg = df.groupby("month").mean(numeric_only=True)
     return monthly_avg
+
+def get_talhao_climate_report_data(latitude: float, longitude: float):
+    safe_date = date.today() - timedelta(days=7)
+    climatology_start = safe_date.replace(year=safe_date.year - 30)
+
+    current_year_start = date(safe_date.year, 1, 1)
+
+    climatology = fetch_climate_data(
+        latitude=latitude,
+        longitude=longitude,
+        start_date=climatology_start.isoformat(),
+        end_date=safe_date.isoformat(),
+    )
+
+    current_year = fetch_climate_data(
+        latitude=latitude,
+        longitude=longitude,
+        start_date=current_year_start.isoformat(),
+        end_date=safe_date.isoformat(),
+    )
+
+    return {
+        "climatology": aggregate_monthly(climatology["daily"]),
+        "current_year": aggregate_monthly(current_year["daily"]),
+    }
