@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Climático</title>
+        <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+ 
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #1f2937;
+        }
+ 
+        .page:not(:last-child) {
+            page-break-after: always;
+        }
+ 
+        h1 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+ 
+        h2 {
+            font-size: 13px;
+            margin: 8px 0 4px 0;
+            color: #374151;
+        }
+ 
+        p {
+            font-size: 11px;
+            margin: 2px 0;
+        }
+ 
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 90vh;
+            text-align: center;
+        }
+ 
+        .cover h1 {
+            font-size: 26px;
+        }
+ 
+        .cover p {
+            font-size: 13px;
+        }
+ 
+        .charts-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: space-between;
+        }
+ 
+        .charts-grid img {
+            width: 48%;
+            height: auto;
+        }
+ 
+        .croqui-img {
+            width: 40%;
+            display: block;
+            margin: 0 auto;
+        }
+ 
+        .insights {
+            font-size: 10px;
+            line-height: 1.4;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+    <div class="page cover">
+        <h1>Relatório Climático de Talhões</h1>
+        <h2>CAR: {{ car.cod_imovel }}</h2>
+        <p>Município: {{ car.municipio }} - {{ car.uf }}</p>
+        <p>Área total do imóvel: {{ car.area_ha }} ha</p>
+        <p>Talhões incluídos neste relatório: {{ talhoes|length }}</p>
+    </div>
+    {% for talhao in talhoes %}
+    <div class="page">
+        <h1>Talhão {{ talhao.talhao_id }}</h1>
+        <p>Área: {{ talhao.area_ha }} ha</p>
+
+        <h2>Croqui sobre Imagem de Satélite</h2>
+        <img class="croqui-img" src="data:image/png;base64,{{ talhao.croqui }}">
+
+        <h2>Dados Climáticos</h2>
+        <div class="charts-grid">
+            <img src="data:image/png;base64,{{ talhao.rainfall_climatology }}">
+            <img src="data:image/png;base64,{{ talhao.temperature_climatology }}">
+            <img src="data:image/png;base64,{{ talhao.rainfall_comparison }}">
+            <img src="data:image/png;base64,{{ talhao.temperature_comparison }}">
+        </div>
+
+        <h2>Análise por IA</h2>
+        <p class="insights">{{ talhao.insights }}</p>
+    </div>
+    {% endfor %}
+</body>
+</html>
