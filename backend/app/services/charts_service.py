@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from datetime import date
 import io
 import base64
 
@@ -34,5 +35,22 @@ def plot_temperature_climatology(monthly_data):
     ax.set_xlabel("Mês")
     ax.set_ylabel("Temperatura (C°)")
     ax.set_xticks(monthly_data.index, labels=MONTHS)
+
+    return _figure_to_base64(fig)
+
+
+def plot_rainfall_comparison(climatology_data, current_year_data):
+    matching_months = climatology_data.loc[current_year_data.index]
+    current_year = date.today().year
+    fig, ax = plt.subplots()
+
+    ax.plot(matching_months.index, matching_months["precipitation_sum"], label="Média histórica")
+    ax.plot(current_year_data.index, current_year_data["precipitation_sum"], label=f'{current_year}')
+
+    ax.legend()
+    ax.set_title("Comparativo climatologia de chuva")
+    ax.set_xlabel("Mês")
+    ax.set_ylabel("Precipitação (mm)")
+    ax.set_xticks(current_year_data.index, labels=MONTHS[:len(current_year_data)])
 
     return _figure_to_base64(fig)
