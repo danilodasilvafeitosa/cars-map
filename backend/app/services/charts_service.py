@@ -54,3 +54,24 @@ def plot_rainfall_comparison(climatology_data, current_year_data):
     ax.set_xticks(current_year_data.index, labels=MONTHS[:len(current_year_data)])
 
     return _figure_to_base64(fig)
+
+def plot_temperature_comparison(climatology_data, current_year_data):
+    matching_months = climatology_data.loc[current_year_data.index]
+    current_year = date.today().year
+    fig, ax = plt.subplots()
+
+    ax.plot(matching_months.index, matching_months["temperature_2m_max"], label="Máxima histórica", color="C0")
+    ax.plot(matching_months.index, matching_months["temperature_2m_mean"], label="Média histórica", color="C1")
+    ax.plot(matching_months.index, matching_months["temperature_2m_min"], label="Mínima histórica", color="C2")
+
+    ax.plot(current_year_data.index, current_year_data["temperature_2m_max"], label=f'Máxima de {current_year}', linestyle="--", color="C0")
+    ax.plot(current_year_data.index, current_year_data["temperature_2m_mean"], label=f'Média de {current_year}', linestyle="--", color="C1")
+    ax.plot(current_year_data.index, current_year_data["temperature_2m_min"], label=f'Mínima de {current_year}', linestyle="--", color="C2")
+
+    ax.legend()
+    ax.set_title("Comparativo climatologia de temperatura")
+    ax.set_xlabel("Mês")
+    ax.set_ylabel("Temperatura (C°)")
+    ax.set_xticks(current_year_data.index, labels=MONTHS[:len(current_year_data)])
+
+    return _figure_to_base64(fig)
