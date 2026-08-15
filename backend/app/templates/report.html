@@ -100,7 +100,7 @@
         </div>
 
         <h2>Análise por IA</h2>
-        <p class="insights">{{ talhao.insights }}</p>
+        <div class="insights">{{ talhao.insights | safe }}</div>
     </div>
     {% endfor %}
 </body>

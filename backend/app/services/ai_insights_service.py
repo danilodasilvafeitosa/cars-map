@@ -26,6 +26,7 @@ def generate_climate_insights(climatology_data, current_year_data):
         3. Recomendações práticas, se aplicável
 
         Seja direto e use linguagem acessível para um produtor rural, evitando jargão técnico excessivo.
+        Não inclua título, cabeçalho ou introdução do tipo "Análise climática de..." — comece direto pelo conteúdo, já que este texto será inserido em um documento que já possui seu próprio título de seção.
     """
 
     try:

@@ -1,3 +1,5 @@
+import markdown
+
 from jinja2 import Template
 from weasyprint import HTML
 from pathlib import Path
@@ -16,6 +18,7 @@ def _build_talhao_data(talhao_row):
 
     croqui = satellite_service.plot_talhao_satellite(talhao_row)
     insights = generate_climate_insights(climate_data["climatology"], climate_data["current_year"])
+    insights_html = markdown.markdown(insights)
 
     rainfall_climatology = charts_service.plot_rainfall_climatology(climate_data["climatology"])
     temperature_climatology = charts_service.plot_temperature_climatology(climate_data["climatology"])
@@ -30,5 +33,22 @@ def _build_talhao_data(talhao_row):
         "temperature_climatology": temperature_climatology,
         "rainfall_comparison": rainfall_comparison,
         "temperature_comparison": temperature_comparison,
-        "insights": insights,
+        "insights": insights_html,
     }
+
+def generate_talhoes_report(car_row, talhoes_rows):
+    talhoes_data = [_build_talhao_data(talhao) for talhao in talhoes_rows]
+    car_data = {
+        "cod_imovel": car_row.cod_imovel,
+        "municipio": car_row.municipio,
+        "uf": car_row.uf,
+        "area_ha": car_row.area_ha,
+    }
+
+    with open(TEMPLATE_PATH) as f:
+        template = Template(f.read())
+
+    html_content = template.render(car=car_data, talhoes=talhoes_data)
+    pdf_bytes = HTML(string=html_content).write_pdf()
+
+    return pdf_bytes
