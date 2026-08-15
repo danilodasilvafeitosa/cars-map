@@ -25,3 +25,9 @@ def get_talhoes_by_car(cod_imovel: str) -> gpd.GeoDataFrame:
     if _talhoes_gdf is None:
         raise RuntimeError("Dados nao carregados. Chame load_data() no startup.")
     return _talhoes_gdf[_talhoes_gdf["cod_imovel"] == cod_imovel]
+
+def get_talhao_centroid(talhao_row):
+    centroid = talhao_row.geometry.centroid
+    latitude = centroid.y
+    longitude = centroid.x
+    return (latitude, longitude)
