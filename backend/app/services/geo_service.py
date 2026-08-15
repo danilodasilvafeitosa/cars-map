@@ -21,6 +21,17 @@ def get_all_cars() -> gpd.GeoDataFrame:
         raise RuntimeError("Dados nao carregados. Chame load_data() no startup.")
     return _cars_gdf
 
+def get_car_by_id(cod_imovel: str):
+    if _cars_gdf is None:
+        raise RuntimeError("Dados nao carregados. Chame load_data() no startup.")
+
+    matching_cars = _cars_gdf[_cars_gdf["cod_imovel"] == cod_imovel]
+
+    if matching_cars.empty:
+        raise ValueError(f"CAR com cod_imovel '{cod_imovel}' nao encontrado.")
+
+    return matching_cars.iloc[0]
+
 def get_talhoes_by_car(cod_imovel: str) -> gpd.GeoDataFrame:
     if _talhoes_gdf is None:
         raise RuntimeError("Dados nao carregados. Chame load_data() no startup.")

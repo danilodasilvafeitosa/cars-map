@@ -1,4 +1,5 @@
 import markdown
+import time
 
 from jinja2 import Template
 from weasyprint import HTML
@@ -11,6 +12,7 @@ from app.services import satellite_service
 from app.services.ai_insights_service import generate_climate_insights
 
 TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "templates" / "report.html"
+DELAY_BETWEEN_TALHOES = 1.5
 
 def _build_talhao_data(talhao_row):
     latitude, longitude = geo_service.get_talhao_centroid(talhao_row)
@@ -37,7 +39,12 @@ def _build_talhao_data(talhao_row):
     }
 
 def generate_talhoes_report(car_row, talhoes_rows):
-    talhoes_data = [_build_talhao_data(talhao) for talhao in talhoes_rows]
+    talhoes_data = []
+    for talhao in talhoes_rows:
+        talhao_data = _build_talhao_data(talhao)
+        talhoes_data.append(talhao_data)
+        time.sleep(DELAY_BETWEEN_TALHOES)
+
     car_data = {
         "cod_imovel": car_row.cod_imovel,
         "municipio": car_row.municipio,

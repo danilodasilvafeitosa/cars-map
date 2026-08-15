@@ -1,6 +1,8 @@
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
+
 from app.services import geo_service
+from app.services import report_service
 
 router = APIRouter(prefix="/cars", tags=["cars"])
 
@@ -19,3 +21,26 @@ def list_talhoes_by_car(cod_imovel: str):
 
     geojson = talhoes.to_json()
     return json.loads(geojson)
+
+@router.post("/{cod_imovel}/report")
+def generate_report(cod_imovel: str):
+    try:
+        car_row = geo_service.get_car_by_id(cod_imovel)
+
+        talhoes = geo_service.get_talhoes_by_car(cod_imovel)
+
+        talhoes_rows = [row for _, row in talhoes.iterrows()]
+
+        report = report_service.generate_talhoes_report(car_row, talhoes_rows)
+
+        return Response(
+            content=report,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=relatorio_climatico.pdf"
+            }
+        )
+
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
