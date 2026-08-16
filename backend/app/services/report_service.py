@@ -6,7 +6,7 @@ from weasyprint import HTML
 from pathlib import Path
 
 from app.services import geo_service
-from app.services.climate_service import get_talhao_climate_report_data
+from app.services import climate_service
 from app.services import charts_service
 from app.services import satellite_service
 from app.services.ai_insights_service import generate_climate_insights
@@ -14,10 +14,7 @@ from app.services.ai_insights_service import generate_climate_insights
 TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "templates" / "report.html"
 DELAY_BETWEEN_TALHOES = 1.5
 
-def _build_talhao_data(talhao_row):
-    latitude, longitude = geo_service.get_talhao_centroid(talhao_row)
-    climate_data = get_talhao_climate_report_data(latitude, longitude)
-
+def _build_talhao_data(talhao_row, climate_data):
     croqui = satellite_service.plot_talhao_satellite(talhao_row)
     insights = generate_climate_insights(climate_data["climatology"], climate_data["current_year"])
     insights_html = markdown.markdown(insights)
@@ -39,9 +36,12 @@ def _build_talhao_data(talhao_row):
     }
 
 def generate_talhoes_report(car_row, talhoes_rows):
+    coordinates = [geo_service.get_talhao_centroid(talhao) for talhao in talhoes_rows]
+    climate_results = climate_service.get_climate_report_data_batch(coordinates)
+
     talhoes_data = []
-    for talhao in talhoes_rows:
-        talhao_data = _build_talhao_data(talhao)
+    for talhao, climate_data in zip(talhoes_rows, climate_results):
+        talhao_data = _build_talhao_data(talhao, climate_data)
         talhoes_data.append(talhao_data)
         time.sleep(DELAY_BETWEEN_TALHOES)
 
