@@ -1,9 +1,11 @@
 import os
 import logging
+import threading
+
 from google import genai
 
 logger = logging.getLogger(__name__)
-
+GEMINI_SEMAPHORE = threading.Semaphore(2)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -29,13 +31,13 @@ def generate_climate_insights(climatology_data, current_year_data):
         Não inclua título, cabeçalho ou introdução do tipo "Análise climática de..." — comece direto pelo conteúdo, já que este texto será inserido em um documento que já possui seu próprio título de seção.
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt
-        )
-
-        return response.text
-    except Exception as e:
-        logger.error(f"Erro ao gerar insights de IA: {e}")
-        return "Não foi possível gerar a análise por IA no momento."
+    with GEMINI_SEMAPHORE:
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=prompt
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Erro ao gerar insights de IA: {e}")
+            return "Não foi possível gerar a análise por IA no momento."

@@ -1,6 +1,7 @@
 import markdown
-import time
+import logging
 
+from concurrent.futures import ThreadPoolExecutor
 from jinja2 import Template
 from weasyprint import HTML
 from pathlib import Path
@@ -11,14 +12,28 @@ from app.services import charts_service
 from app.services import satellite_service
 from app.services.ai_insights_service import generate_climate_insights
 
+logger = logging.getLogger(__name__)
+
 TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "templates" / "report.html"
-DELAY_BETWEEN_TALHOES = 1.5
+MAX_WORKERS = 4
 
-def _build_talhao_data(talhao_row, climate_data):
+
+def _fetch_talhao_inputs(talhao_row):
+    """Busca dados de rede (clima + insights) - seguro para rodar em paralelo."""
+    try:
+        latitude, longitude = geo_service.get_talhao_centroid(talhao_row)
+        climate_data = climate_service.get_talhao_climate_report_data(latitude, longitude)
+        insights = generate_climate_insights(climate_data["climatology"], climate_data["current_year"])
+        insights_html = markdown.markdown(insights)
+        return climate_data, insights_html
+    except Exception as e:
+        logger.warning(f"Falha ao buscar dados do talhao {talhao_row.talhao_id}: {e}")
+        return None
+
+
+def _build_talhao_charts(talhao_row, climate_data, insights_html):
+    """Gera gráficos e croqui - roda sequencialmente (matplotlib não é thread-safe)."""
     croqui = satellite_service.plot_talhao_satellite(talhao_row)
-    insights = generate_climate_insights(climate_data["climatology"], climate_data["current_year"])
-    insights_html = markdown.markdown(insights)
-
     rainfall_climatology = charts_service.plot_rainfall_climatology(climate_data["climatology"])
     temperature_climatology = charts_service.plot_temperature_climatology(climate_data["climatology"])
     rainfall_comparison = charts_service.plot_rainfall_comparison(climate_data["climatology"], climate_data["current_year"])
@@ -35,15 +50,18 @@ def _build_talhao_data(talhao_row, climate_data):
         "insights": insights_html,
     }
 
+
 def generate_talhoes_report(car_row, talhoes_rows):
-    coordinates = [geo_service.get_talhao_centroid(talhao) for talhao in talhoes_rows]
-    climate_results = climate_service.get_climate_report_data_batch(coordinates)
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        fetched_inputs = list(executor.map(_fetch_talhao_inputs, talhoes_rows))
 
     talhoes_data = []
-    for talhao, climate_data in zip(talhoes_rows, climate_results):
-        talhao_data = _build_talhao_data(talhao, climate_data)
+    for talhao_row, inputs in zip(talhoes_rows, fetched_inputs):
+        if inputs is None:
+            continue
+        climate_data, insights_html = inputs
+        talhao_data = _build_talhao_charts(talhao_row, climate_data, insights_html)
         talhoes_data.append(talhao_data)
-        time.sleep(DELAY_BETWEEN_TALHOES)
 
     car_data = {
         "cod_imovel": car_row.cod_imovel,
