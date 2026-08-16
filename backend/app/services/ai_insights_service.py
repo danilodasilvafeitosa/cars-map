@@ -1,13 +1,27 @@
 import os
 import logging
 import threading
-
+import time
 from google import genai
 
 logger = logging.getLogger(__name__)
-GEMINI_SEMAPHORE = threading.Semaphore(2)
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
+
+GEMINI_LOCK = threading.Lock()
+GEMINI_MIN_INTERVAL = 4.5
+_last_call_time = 0
+
+
+def _wait_for_rate_limit():
+    global _last_call_time
+    with GEMINI_LOCK:
+        elapsed = time.time() - _last_call_time
+        if elapsed < GEMINI_MIN_INTERVAL:
+            time.sleep(GEMINI_MIN_INTERVAL - elapsed)
+        _last_call_time = time.time()
+
 
 def generate_climate_insights(climatology_data, current_year_data):
     climatology_text = climatology_data.to_string()
@@ -29,15 +43,17 @@ def generate_climate_insights(climatology_data, current_year_data):
 
         Seja direto e use linguagem acessível para um produtor rural, evitando jargão técnico excessivo.
         Não inclua título, cabeçalho ou introdução do tipo "Análise climática de..." — comece direto pelo conteúdo, já que este texto será inserido em um documento que já possui seu próprio título de seção.
-    """
+        Limite sua resposta a no máximo 900 caracteres no total, mantendo a análise concisa mas completa.
+        """
 
-    with GEMINI_SEMAPHORE:
-        try:
-            response = client.models.generate_content(
-                model="gemini-3.6-flash",
-                contents=prompt
-            )
-            return response.text
-        except Exception as e:
-            logger.error(f"Erro ao gerar insights de IA: {e}")
-            return "Não foi possível gerar a análise por IA no momento."
+    _wait_for_rate_limit()
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.1-flash-lite",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        logger.error(f"Erro ao gerar insights de IA: {e}")
+        return "Não foi possível gerar a análise por IA no momento."
