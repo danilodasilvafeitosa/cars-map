@@ -4,6 +4,7 @@ load_dotenv()
 import logging
 logging.basicConfig(level=logging.INFO, force=True)
 
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
@@ -18,6 +19,14 @@ async def lifespan(app: FastAPI):
     
 
 app = FastAPI(title="CARs Map Desafio API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(cars.router)
 
