@@ -19,7 +19,10 @@ def list_talhoes_by_car(cod_imovel: str):
     if talhoes.empty:
         raise HTTPException(status_code=404, detail=f'Talhões não encontrados para o CAR: {cod_imovel}')
 
-    geojson = talhoes.to_json()
+    talhoes_simplified = talhoes.copy()
+    talhoes_simplified["geometry"] = talhoes_simplified["geometry"].simplify(0.00005)
+
+    geojson = talhoes_simplified.to_json()
     return json.loads(geojson)
 
 @router.post("/{cod_imovel}/report")
