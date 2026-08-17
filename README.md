@@ -38,6 +38,7 @@ OPENAI_API_KEY=sua-chave-aqui
 
 ### Backend
 
+```
 backend/app/
 ├── api/ # rotas HTTP (FastAPI)
 ├── services/ # lógica de negócio
@@ -50,15 +51,18 @@ backend/app/
 ├── helpers/ # utilitários compartilhados (conversão de imagem)
 ├── templates/ # template HTML/Jinja2 do relatório
 └── data/ # GeoJSON de CARs e talhões
+```
 
 Os dados são carregados em memória no startup (`geo_service.load_data()`), sem banco de dados — adequado ao volume de dados do desafio. Para produção com datasets maiores, a evolução natural seria migrar para PostGIS.
 
 ### Frontend
 
+```
 frontend/src/components/
 ├── MapView.tsx # mapa principal, estado central da aplicação
 ├── FitBoundsToTalhoes.tsx # ajusta zoom/posição ao carregar talhões
 └── TalhoesSidebar.tsx # lista de seleção + botão de gerar relatório
+```
 
 ## Decisões técnicas e trade-offs
 
