@@ -2,12 +2,14 @@
 
 export default function TalhoesSidebar({
   talhoesData,
+  selectedCarInfo,
   selectedTalhaoIds,
   onToggle,
   onGenerateReport,
   isGeneratingReport,
 }: {
   talhoesData: any;
+  selectedCarInfo: any
   selectedTalhaoIds: string[];
   onToggle: (id: string) => void;
   onGenerateReport: () => void;
@@ -34,6 +36,28 @@ export default function TalhoesSidebar({
     >
       <div style={{ padding: "16px 16px 0 16px" }}>
         <h3 style={{ marginBottom: "8px", color: "#1a1a1a" }}>Talhões</h3>
+      </div>
+
+      <div style={{ padding: "16px 16px 0 16px" }}>
+        {selectedCarInfo && (
+          <div
+            style={{
+              background: "#f5f5f5",
+              padding: "10px",
+              borderRadius: "6px",
+              marginBottom: "12px",
+              fontSize: "13px",
+            }}
+          >
+            <div>
+              <strong>CAR:</strong> {selectedCarInfo.cod_imovel}
+            </div>
+
+             <div>
+              <strong>Area:</strong> {selectedCarInfo.area_ha} ha
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ overflowY: "auto", padding: "0 16px", flex: 1 }}>

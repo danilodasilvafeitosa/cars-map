@@ -13,6 +13,7 @@ export default function MapView() {
   const [talhoesData, setTalhoesData] = useState(null);
   const [selectedTalhaoIds, setSelectedTalhaoIds] = useState<string[]>([]);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [selectedCarInfo, setSelectedCarInfo] = useState<any>(null);
 
   useEffect(() => {
     fetch("http://localhost:8000/cars")
@@ -28,6 +29,7 @@ export default function MapView() {
         .then((response) => response.json())
         .then((data) => {
           setSelectedCodImovel(codImovel);
+          setSelectedCarInfo(feature.properties);
           setTalhoesData(data);
           const allIds = data.features.map((f: any) => f.properties.talhao_id);
           setSelectedTalhaoIds(allIds);
@@ -118,6 +120,7 @@ export default function MapView() {
       </MapContainer>
       <TalhoesSidebar
         talhoesData={talhoesData}
+        selectedCarInfo={selectedCarInfo}
         selectedTalhaoIds={selectedTalhaoIds}
         onToggle={toggleTalhaoSelection}
         onGenerateReport={handleGenerateReport}
