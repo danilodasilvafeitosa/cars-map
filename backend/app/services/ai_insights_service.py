@@ -1,26 +1,13 @@
 import os
 import logging
-import threading
-import time
-from google import genai
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-GEMINI_LOCK = threading.Lock()
-GEMINI_MIN_INTERVAL = 4.5
-_last_call_time = 0
-
-
-def _wait_for_rate_limit():
-    global _last_call_time
-    with GEMINI_LOCK:
-        elapsed = time.time() - _last_call_time
-        if elapsed < GEMINI_MIN_INTERVAL:
-            time.sleep(GEMINI_MIN_INTERVAL - elapsed)
-        _last_call_time = time.time()
+MODEL = "gpt-4o-mini"
 
 
 def generate_climate_insights(climatology_data, current_year_data):
@@ -46,14 +33,14 @@ def generate_climate_insights(climatology_data, current_year_data):
         Limite sua resposta a no máximo 900 caracteres no total, mantendo a análise concisa mas completa.
         """
 
-    _wait_for_rate_limit()
-
     try:
-        response = client.models.generate_content(
-            model="gemini-3.1-flash-lite",
-            contents=prompt
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.text
+        return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Erro ao gerar insights de IA: {e}")
         return "Não foi possível gerar a análise por IA no momento."
