@@ -1,10 +1,15 @@
 import json
 from fastapi import APIRouter, HTTPException, Response
+from pydantic import BaseModel
+from typing import Optional
 
 from app.services import geo_service
 from app.services import report_service
 
 router = APIRouter(prefix="/cars", tags=["cars"])
+
+class ReportRequest(BaseModel):
+    talhao_ids: Optional[list[str]] = None
 
 @router.get("")
 def list_cars():
@@ -26,11 +31,13 @@ def list_talhoes_by_car(cod_imovel: str):
     return json.loads(geojson)
 
 @router.post("/{cod_imovel}/report")
-def generate_report(cod_imovel: str):
+def generate_report(cod_imovel: str, body: ReportRequest = None):
     try:
         car_row = geo_service.get_car_by_id(cod_imovel)
-
         talhoes = geo_service.get_talhoes_by_car(cod_imovel)
+
+        if body and body.talhao_ids:
+            talhoes = talhoes[talhoes["talhao_id"].isin(body.talhao_ids)]
 
         talhoes_rows = [row for _, row in talhoes.iterrows()]
 
@@ -43,7 +50,6 @@ def generate_report(cod_imovel: str):
                 "Content-Disposition": "attachment; filename=relatorio_climatico.pdf"
             }
         )
-
 
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
